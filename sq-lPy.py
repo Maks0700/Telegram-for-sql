@@ -1,45 +1,30 @@
-""" import sqlite3 as sq
-with sq.connect("DB.db") as con:
-    cur = con.cursor()
-    cur.execute("""""" CREATE TABLE IF NOT EXISTS photos(
-                id INTEGER PRIMARY KEY,
-                photo BLOB """
-
-""" """   """)
-    for i in range(1, 4):
-        with open(f"{i}.jpg", "rb") as photo:
-            h = photo.read()
-            cur.execute("INSERT INTO photos(photo) VALUES(?)", [h]) """ """ """
 import telebot
 from telebot import types
 import webbrowser
 import sqlite3 as sq
+import requests
+import  json
+
 bot = telebot.TeleBot("6218663006:AAGGboF-ByLwUBn0MUrTNv5kiYrAqzwGA34")
 
-
+key_api="936f1d577ed80415503d1a56fcdcedcf"
+url="https://api.openweathermap.org/data/2.5/weather?q=London&appid=936f1d577ed80415503d1a56fcdcedcf&units=metric"
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message(message.chat.id, "Добро пожаловать!!")
-
+    bot.send_message(message.chat.id,"Привет,рад тебя видеть!Напиши название города!")
 
 @bot.message_handler(content_types=["text"])
-def conv(message):
-    markup = types.InlineKeyboardMarkup()
-    btn1 = types.InlineKeyboardButton("Имя", callback_data="name")
-    btn2 = types.InlineKeyboardButton("ID", callback_data="id")
-    markup.row(btn1, btn2)
-    bot.reply_to(message, "Ты крутой чувак,выбери кнопку",
-                 reply_markup=markup)
+def get_weather(message):
+    city=message.text.lower().lstrip()
+    res=requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid=936f1d577ed80415503d1a56fcdcedcf&units=metric")
+    if res.status_code==200:
+        data=json.loads(res.text)
+        
+        weather_new=data['weather']['id']
+        bot.send_message(message.chat.id,weather_new)
 
 
-@bot.callback_query_handler(func=lambda callback: True)
-def call(callback):
-    if callback.data == "name":
-        bot.send_message("Hello", callback.message.chat.id,
-                         callback.message.message_id)
-    elif callback.data == "id":
-        bot.send_message("Good", callback.message.chat.id,
-                         callback.message.message_id)
-
+    else:
+        bot.reply_to(message,"Город указан неверно,введите снова город!!")
 
 bot.polling(non_stop=True)
