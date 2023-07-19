@@ -20,8 +20,16 @@ def get_weather(message):
     if res.status_code==200:
         data=json.loads(res.text)
         
-        weather_new=data['weather']['id']
-        bot.send_message(message.chat.id,weather_new)
+        weather_new=data["weather"][0]["main"]
+        
+        #bot.send_message(message.chat.id,weather_new)
+        if "rain" in weather_new.lower(): 
+            weather_picture=open("Дождливо.gif","rb")
+            bot.send_photo(message.chat.id,weather_picture)
+        elif "clouds" in weather_new.lower():
+            weather_picture=open("Пасмурно.jpg","rb")
+            bot.send_photo(message.chat.id,weather_picture)
+        weather_picture=None
 
 
     else:
